@@ -74,7 +74,7 @@ int main(void)
 	std::cout << "OpenGl version: " << glGetString(GL_VERSION) << std::endl;
 	std::cout << "GLEW version : " << glewGetString(GLEW_VERSION) << std::endl;
 
-	//an array that will act as the position vertex buffer
+	//an array that will act as the position vertex buffer 
 	float vert[6] = 
 	{
 		-0.5f,  -0.5f,
