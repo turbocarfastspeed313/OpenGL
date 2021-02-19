@@ -4,19 +4,21 @@
 
 static unsigned int CompileShader(unsigned int type, const std::string& source)
 {
-	unsigned int id = glCreateShader(type);
-	const char* src = source.c_str();
-	glShaderSource(id, 1, &src, nullptr);
+	unsigned int id = glCreateShader(type); //create a shader and store its id
+	const char* src = source.c_str(); //OpenGL requires a C-type string
+	glShaderSource(id, 1, &src, nullptr); //provide the source
 	glCompileShader(id);
 
+	//test for compilation errors of the shader
 	int result;
 	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
 	if (result == GL_FALSE)
 	{
 		int length;
 		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-		char message = (char*)alloca(length * sizeof(char));
+		const char* message = (char*)alloca(length * sizeof(char));
 	}
+
 	return id;
 }
 
@@ -96,8 +98,9 @@ int main(void)
 	{
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
 
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
 
