@@ -22,8 +22,6 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
 	return id;
 }
 
-//this is some code i'm working on
-
 //the parameters are the source code for the shaders as strings
 //provide OpenGL with the source code for the shaders
 //link and compile the shaders
