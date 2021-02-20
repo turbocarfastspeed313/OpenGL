@@ -119,7 +119,7 @@ int main(void)
 	std::string fragmentShader =
 		"#version 330 core\n"
 		"\n"
-		"in vec4 color;\n"
+		"in vec4 color;\n "
 		"out vec4 out_color;\n"
 		"\n"
 		"void main()\n"
