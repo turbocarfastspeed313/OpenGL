@@ -84,9 +84,9 @@ int main(void)
 	//an array that will act as the position vertex buffer 
 	float vert[18] =
 	{
-		-0.5f,  -0.5f, 255, 7, 0, 1,
-		 0.0f,   0.7f, 0, 0, 0, 1,
-		 0.5f,  -0.5f, 255, 7, 0, 1,
+		-1.0f,  -1.0f, 1, 0, 0, 1,
+		 0.0f,   1.0f, 1, 0, 0, 1,
+		 1.0f,  -1.0f, 0, 0, 1, 1,
 	};
 
 	unsigned int buffer;
@@ -96,7 +96,7 @@ int main(void)
 
 	//define how the vertex members should be interpreted
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0); //the first two elements of a vertex represent the position argument	//glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (const void*)(sizeof(float) * 3)); //the forth element of a vertex represents the state argument (active = 1, inactive = 0)
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 6, ((const void*)(sizeof(float) * 3)));
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 6, ((const void*)(sizeof(float) * 2)));
 
 	//"activate" the atributes
 	glEnableVertexAttribArray(0);
@@ -119,7 +119,7 @@ int main(void)
 	std::string fragmentShader =
 		"#version 330 core\n"
 		"\n"
-		"in vec4 color;\n "
+		"in vec4 color;\n"
 		"out vec4 out_color;\n"
 		"\n"
 		"void main()\n"
