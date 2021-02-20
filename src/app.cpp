@@ -5,7 +5,7 @@
 static unsigned int CompileShader(unsigned int type, const std::string& source)
 {
 	unsigned int id = glCreateShader(type); //create a shader and store its id
-	const char* src = source.c_str(); //OpenGL requires a C-type string
+	const char* src = source.c_str(); //get a C-type string from std::string
 	glShaderSource(id, 1, &src, nullptr); //provide the source
 	glCompileShader(id);
 
@@ -16,18 +16,21 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
 	{
 		int length;
 		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-		const char* message = (char*)alloca(length * sizeof(char));
+		char* message = (char*)alloca(length * sizeof(char));
+		glGetShaderInfoLog(id, length, &length, message);
+		std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader." << std::endl
+			      << message << std::endl;
+		glDeleteShader(id);
+		return 0;
 	}
 
 	return id;
 }
 
-//this is some code i'm working on
-
-//the parameters are the source code for the shaders as strings
-//provide OpenGL with the source code for the shaders
-//link and compile the shaders
-//returns an id
+//the parameters are the source code for the shaders (as strings)
+//provides OpenGL with the source code for the shaders
+//links and compiles the shaders
+//returns an id for the created shader
 static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
 {
 	unsigned int program = glCreateProgram();
@@ -43,7 +46,7 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
 	glDeleteShader(fs);
 
 	return program;
-}
+} 
 
 int main(void)
 {
@@ -77,23 +80,53 @@ int main(void)
 	std::cout << "GLEW version : " << glewGetString(GLEW_VERSION) << std::endl;
 
 	//an array that will act as the position vertex buffer 
-	float vert[6] = 
+	float vert[18] = 
 	{
-		-0.5f,  -0.5f,
-		 0.0f,   0.7f,
-		 0.5f,  -0.5f,
+		-0.5f,  -0.5f, 255, 7, 0, 1,
+		 0.0f,   0.7f, 0, 0, 0, 1,
+		 0.5f,  -0.5f, 255, 7, 0, 1,
 	};
 
 	unsigned int buffer;
 	glGenBuffers(1, &buffer); //create a buffer
 	glBindBuffer(GL_ARRAY_BUFFER, buffer); //"select" a buffer
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6, vert, GL_STATIC_DRAW); // "fill" the buffer with data ( or just mention its size )
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 18, vert, GL_STATIC_DRAW); // "fill" the buffer with data ( or just mention its size )
 
 	//define how the vertex members should be interpreted
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0); //the first two elements of a vertex represent the position argument	//glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (const void*)(sizeof(float) * 3)); //the forth element of a vertex represents the state argument (active = 1, inactive = 0)
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0); //the first two elements of a vertex represent the position argument	//glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (const void*)(sizeof(float) * 3)); //the forth element of a vertex represents the state argument (active = 1, inactive = 0)
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 6, ((const void*)(sizeof(float) * 3)));
 
 	//"activate" the atributes
 	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+
+	//TODO : try to understand shader syntax
+	std::string vertexShader =
+		"#version 330 core\n"
+		"\n"
+		"layout(location = 0) in vec4 position;\n"
+		"layout(location = 1) in vec4 color_in;\n"
+		"out vec4 color;\n"
+		"\n"
+		"void main()\n"
+		"{\n"
+		"	color = color_in;"
+		"	gl_Position = position;\n"
+		"}\n";
+
+	std::string fragmentShader =
+		"#version 330 core\n"
+		"\n"
+		"in vec4 color;\n"
+		"out vec4 out_color;\n"
+		"\n"
+		"void main()\n"
+		"{\n"
+		"	out_color = color;\n" // orange
+		"}\n";
+
+	unsigned int shader = CreateShader(vertexShader, fragmentShader);
+	glUseProgram(shader);
 
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
