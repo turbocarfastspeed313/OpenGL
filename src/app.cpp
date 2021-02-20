@@ -1,6 +1,24 @@
 ﻿#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <fstream>
+#include <string>
+
+static void ParseFile(std::string& path, std::string& out, bool printSourceToConsole = false)
+{
+	std::ifstream fin(path);
+	std::string temp;
+	while (fin)
+	{
+		std::getline(fin, temp);
+		out += temp;
+		out += "\n";
+		temp = "";
+	}
+
+	if (printSourceToConsole)
+		std::cout << out << "\n";
+}
 
 static unsigned int CompileShader(unsigned int type, const std::string& source)
 {
@@ -102,30 +120,18 @@ int main(void)
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 
-	//TODO : try to understand shader syntax
-	std::string vertexShader =
-		"#version 330 core\n"
-		"\n"
-		"layout(location = 0) in vec4 position;\n"
-		"layout(location = 1) in vec4 color_in;\n"
-		"out vec4 color;\n"
-		"\n"
-		"void main()\n"
-		"{\n"
-		"	color = color_in;"
-		"	gl_Position = position;\n"
-		"}\n";
+	//Parse the shaders from files and create a program
+	std::string vertexShader;
+	std::string fragmentShader;
 
-	std::string fragmentShader =
-		"#version 330 core\n"
-		"\n"
-		"in vec4 color;\n"
-		"out vec4 out_color;\n"
-		"\n"
-		"void main()\n"
-		"{\n"
-		"	out_color = color;\n" // orange
-		"}\n";
+	std::string vertexShaderPath   = "res/shaders/vertex.shader";
+	std::string fragmentShaderPath = "res/shaders/fragment.shader";
+
+	std::cout << "VERTEX SHADER" << "\n";
+	ParseFile(vertexShaderPath, vertexShader, true);
+
+	std::cout << "FRAGMENT SHADER" << "\n";
+	ParseFile(fragmentShaderPath, fragmentShader, true);
 
 	unsigned int shader = CreateShader(vertexShader, fragmentShader);
 	glUseProgram(shader);
@@ -144,7 +150,7 @@ int main(void)
 		/* Poll for and process events */
 		glfwPollEvents();
 	}
-
+	glDeleteProgram(shader);
 	glfwTerminate();
 	return 0;
 }
