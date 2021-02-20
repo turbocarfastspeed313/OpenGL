@@ -19,7 +19,7 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
 		char* message = (char*)alloca(length * sizeof(char));
 		glGetShaderInfoLog(id, length, &length, message);
 		std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader." << std::endl
-			      << message << std::endl;
+			<< message << std::endl;
 		glDeleteShader(id);
 		return 0;
 	}
@@ -46,7 +46,7 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
 	glDeleteShader(fs);
 
 	return program;
-} 
+}
 
 int main(void)
 {
@@ -80,7 +80,7 @@ int main(void)
 	std::cout << "GLEW version : " << glewGetString(GLEW_VERSION) << std::endl;
 
 	//an array that will act as the position vertex buffer 
-	float vert[18] = 
+	float vert[18] =
 	{
 		-0.5f,  -0.5f, 255, 7, 0, 1,
 		 0.0f,   0.7f, 0, 0, 0, 1,
@@ -135,7 +135,7 @@ int main(void)
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
-		
+
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
 
