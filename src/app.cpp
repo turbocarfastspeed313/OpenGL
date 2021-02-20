@@ -27,10 +27,12 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
 	return id;
 }
 
-//the parameters are the source code for the shaders (as strings)
-//provides OpenGL with the source code for the shaders
-//links and compiles the shaders
-//returns an id for the created shader
+//this is some code i'm working on
+
+//the parameters are the source code for the shaders as strings
+//provide OpenGL with the source code for the shaders
+//link and compile the shaders
+//returns an id
 static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
 {
 	unsigned int program = glCreateProgram();
