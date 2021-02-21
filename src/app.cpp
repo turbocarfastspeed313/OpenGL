@@ -140,7 +140,7 @@ int main(void)
 		 1.0f,  1.0f, 1, 0, 0.75f, 1, // 24
 	};
 
-	unsigned int indexes[] =
+	unsigned int grid[] =
 	{
 		1, 6, 5,
 		5, 1, 2,
@@ -167,6 +167,25 @@ int main(void)
 		22, 24, 23
 	};
 
+	unsigned int hexagone[] =
+	{
+		1, 6, 4,
+		4, 6, 0,
+		0, 4, 7,
+
+		7,  9,  0,
+		0, 11,  9,
+		9, 11, 14,
+
+		14, 11, 18,
+		11,  0, 18,
+		18, 16,  0,
+
+		0, 16,  6,
+		6, 16, 22,
+		22, 1,  6
+	};
+
 	unsigned int vbo; //vertex buffer object 
 	glGenBuffers(1, &vbo); //create a buffer
 	glBindBuffer(GL_ARRAY_BUFFER, vbo); //"select" a buffer
@@ -181,10 +200,15 @@ int main(void)
 	glEnableVertexAttribArray(1);
 
 
-	unsigned int ibo; //index buffer objext
-	glGenBuffers(1, &ibo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * 2 * 8, indexes, GL_STATIC_DRAW);
+	unsigned int grid_ibo; //index buffer object for grid
+	glGenBuffers(1, &grid_ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grid_ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * 2 * 8, grid, GL_STATIC_DRAW);
+
+	unsigned int hexagone_ibo; //index buffer objext for hexagone
+	glGenBuffers(1, &hexagone_ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, hexagone_ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * 3 * 4, hexagone, GL_STATIC_DRAW);
 
 	//Parse the shaders from files and create a program
 	std::string vertexShader;
@@ -208,7 +232,7 @@ int main(void)
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glDrawElements(GL_TRIANGLES, 3 * 2 * 8, GL_UNSIGNED_INT, nullptr);
+		glDrawElements(GL_TRIANGLES, 3 * 3 * 4, GL_UNSIGNED_INT, nullptr);
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
