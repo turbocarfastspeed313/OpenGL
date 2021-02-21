@@ -200,6 +200,7 @@ int main(void)
 	glEnableVertexAttribArray(1);
 
 
+	//index buffers
 	unsigned int grid_ibo; //index buffer object for grid
 	glGenBuffers(1, &grid_ibo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grid_ibo);
@@ -209,6 +210,8 @@ int main(void)
 	glGenBuffers(1, &hexagone_ibo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, hexagone_ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * 3 * 4, hexagone, GL_STATIC_DRAW);
+
+
 
 	//Parse the shaders from files and create a program
 	std::string vertexShader;
@@ -226,20 +229,19 @@ int main(void)
 	unsigned int shader = CreateShader(vertexShader, fragmentShader);
 	glUseProgram(shader);
 
-	/* Loop until the user closes the window */
+
+
+	//Render loop until the user closes window
 	while (!glfwWindowShouldClose(window))
 	{
-		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glDrawElements(GL_TRIANGLES, 3 * 3 * 4, GL_UNSIGNED_INT, nullptr);
 
-		/* Swap front and back buffers */
-		glfwSwapBuffers(window);
-
-		/* Poll for and process events */
-		glfwPollEvents();
+		glfwSwapBuffers(window); // swap front and back buffers
+		glfwPollEvents(); //poll for and process events
 	}
+
 	glDeleteProgram(shader);
 	glfwTerminate();
 	return 0;
