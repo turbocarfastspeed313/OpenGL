@@ -4,6 +4,39 @@
 #include <fstream>
 #include <string>
 
+#define NO_ASSERT 0
+#if NO_ASSERT == 0
+	#define ASSERT(f) if (!(f)) __debugbreak()
+#else 
+	#define ASSERT(f) f
+#endif
+
+#ifdef DEBUG
+	#define GLCall(f) GLClearErrors();\
+		f;\
+		ASSERT(GLLogErrors(#f, __FILE__, __LINE__))
+#else
+	#define GLCall(f) f
+#endif
+
+//Calls glGetError() until there are no more error flags
+static void GLClearErrors()
+{
+	while (glGetError() != GL_NO_ERROR);
+}
+
+static bool GLLogErrors(const char* function, const char* file, int line)
+{
+	bool noErrors = true;
+
+	while (unsigned int error = glGetError())
+	{
+		std::cout << "[OpenGL error] (" << error << "): " << function << " " << file << " : " << line << "\n";
+		noErrors = false;
+	}
+
+	return noErrors;
+}
 //Reads from an std::ifstream into a string
 static void ParseFile(std::string& path, std::string& out, bool printSourceToConsole = false)
 {
@@ -187,31 +220,29 @@ int main(void)
 	};
 
 	unsigned int vbo; //vertex buffer object 
-	glGenBuffers(1, &vbo); //create a buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vbo); //"select" a buffer
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 25, vertices, GL_STATIC_DRAW); // "fill" the buffer with data ( or just mention its size )
+	GLCall(glGenBuffers(1, &vbo)); //create a buffer
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, vbo)); //"select" a buffer
+	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 25, vertices, GL_STATIC_DRAW)); // "fill" the buffer with data ( or just mention its size )
 
 	//define how the vertex members should be interpreted
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0); //the first two elements of a vertex represent the position argument	//glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (const void*)(sizeof(float) * 3)); //the forth element of a vertex represents the state argument (active = 1, inactive = 0)
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 6, ((const void*)(sizeof(float) * 2)));
+	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0)); //the first two elements of a vertex represent the position argument	//glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (const void*)(sizeof(float) * 3)); //the forth element of a vertex represents the state argument (active = 1, inactive = 0)
+	GLCall(glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 6, ((const void*)(sizeof(float) * 2))));
 
 	//"activate" the atributes
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
+	GLCall(glEnableVertexAttribArray(0));
+	GLCall(glEnableVertexAttribArray(1));
 
 
 	//index buffers
 	unsigned int grid_ibo; //index buffer object for grid
-	glGenBuffers(1, &grid_ibo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grid_ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * 2 * 8, grid, GL_STATIC_DRAW);
+	GLCall(glGenBuffers(1, &grid_ibo));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grid_ibo));
+	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * 2 * 8, grid, GL_STATIC_DRAW));
 
 	unsigned int hexagone_ibo; //index buffer objext for hexagone
-	glGenBuffers(1, &hexagone_ibo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, hexagone_ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * 3 * 4, hexagone, GL_STATIC_DRAW);
-
-
+	GLCall(glGenBuffers(1, &hexagone_ibo));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, hexagone_ibo));
+	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * 3 * 4, hexagone, GL_STATIC_DRAW));
 
 	//Parse the shaders from files and create a program
 	std::string vertexShader;
@@ -221,28 +252,28 @@ int main(void)
 	std::string fragmentShaderPath = "res/shaders/fragment.shader";
 
 	std::cout << "VERTEX SHADER" << "\n";
-	ParseFile(vertexShaderPath, vertexShader, true);
+	GLCall(ParseFile(vertexShaderPath, vertexShader, true));
 
 	std::cout << "FRAGMENT SHADER" << "\n";
-	ParseFile(fragmentShaderPath, fragmentShader, true);
+	GLCall(ParseFile(fragmentShaderPath, fragmentShader, true));
 
 	unsigned int shader = CreateShader(vertexShader, fragmentShader);
-	glUseProgram(shader);
-
+	GLCall(glUseProgram(shader));
+    
 
 
 	//Render loop until the user closes window
 	while (!glfwWindowShouldClose(window))
 	{
-		glClear(GL_COLOR_BUFFER_BIT);
+		GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-		glDrawElements(GL_TRIANGLES, 3 * 3 * 4, GL_UNSIGNED_INT, nullptr);
+		GLCall(glDrawElements(GL_TRIANGLES, 3 * 3 * 4, GL_INT, nullptr));
 
-		glfwSwapBuffers(window); // swap front and back buffers
-		glfwPollEvents(); //poll for and process events
+		GLCall(glfwSwapBuffers(window)); // swap front and back buffers
+		GLCall(glfwPollEvents()); //poll for and process events
 	}
 
-	glDeleteProgram(shader);
+	GLCall(glDeleteProgram(shader));
 	glfwTerminate();
 	return 0;
 }
