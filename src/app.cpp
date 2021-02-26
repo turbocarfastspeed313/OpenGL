@@ -25,6 +25,7 @@ static void GLClearErrors()
 	while (glGetError() != GL_NO_ERROR);
 }
 
+//Prints all errors
 static bool GLLogErrors(const char* function, const char* file, int line)
 {
 	bool noErrors = true;
@@ -81,8 +82,6 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
 	}
 	return id;
 }
-
-//this is some code i'm working on
 
 //the parameters are the source code for the shaders as strings
 //provide OpenGL with the source code for the shaders
@@ -150,13 +149,13 @@ int main(void)
 		-1.0f,  0.0f, 1, 0, 0, 1, // 7
 		-0.5f,  0.0f, 1, 0, 0, 1, // 8
 
-		//botleft
-		-1.0f, -0.5f, 0, 1, 0, 1, //  9
-		-0.5f, -0.5f, 0, 1, 0, 1, // 10
-		 0.0f, -0.5f, 0, 1, 0, 1, // 11
-		-1.0f, -1.0f, 0, 1, 0, 1, // 12
-		-0.5f, -1.0f, 0, 1, 0, 1, // 13
-	     0.0f, -1.0f, 0, 1, 0, 1, // 14
+		//botleft	  
+		-1.0f, -0.5f, 1, 0, 0, 1, //  9
+		-0.5f, -0.5f, 1, 0, 0, 1, // 10
+		 0.0f, -0.5f, 1, 0, 0, 1, // 11
+		-1.0f, -1.0f, 1, 0, 0, 1, // 12
+		-0.5f, -1.0f, 1, 0, 0, 1, // 13
+	     0.0f, -1.0f, 1, 0, 0, 1, // 14
 
 		 //botright
 		 0.5f,  0.0f, 0, 0, 1, 1, // 15
@@ -167,10 +166,10 @@ int main(void)
 		 1.0f, -1.0f, 0, 0, 1, 1, // 20
 
 		 //topright
-		 0.5f,  0.5f, 1, 0, 0.75f, 1, // 21
-		 1.0f,  0.5f, 1, 0, 0.75f, 1, // 22
-		 0.5f,  1.0f, 1, 0, 0.75f, 1, // 23
-		 1.0f,  1.0f, 1, 0, 0.75f, 1, // 24
+		 0.5f,  0.5f, 0, 0, 1, 1, // 21
+		 1.0f,  0.5f, 0, 0, 1, 1, // 22
+		 0.5f,  1.0f, 0, 0, 1, 1, // 23
+		 1.0f,  1.0f, 0, 0, 1, 1  // 24
 	};
 
 	unsigned int grid[] =
@@ -267,7 +266,7 @@ int main(void)
 	{
 		GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-		GLCall(glDrawElements(GL_TRIANGLES, 3 * 3 * 4, GL_INT, nullptr));
+		GLCall(glDrawElements(GL_TRIANGLES, 3 * 3 * 4, GL_UNSIGNED_INT, nullptr));
 
 		GLCall(glfwSwapBuffers(window)); // swap front and back buffers
 		GLCall(glfwPollEvents()); //poll for and process events
