@@ -20,12 +20,14 @@
 #endif
 
 //Calls glGetError() until there are no more error flags
+//It should always be called before GLLogErrors()
 static void GLClearErrors()
 {
 	while (glGetError() != GL_NO_ERROR);
 }
 
-//Prints all errors
+//Prints all errors found so far
+//It should always be called after GLClearErrors()
 static bool GLLogErrors(const char* function, const char* file, int line)
 {
 	bool noErrors = true;
@@ -126,6 +128,7 @@ int main(void)
 
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval(2);
 
 	/*initialize GLEW
 	  it needs to be initialized after a window has been created*/
@@ -137,6 +140,9 @@ int main(void)
 
 	float vertices[] =
 	{
+		 //atrib 1 - position ( 2 floats )
+		 //atrib 2 - color ( 4 floats )
+
 		 0.0f,  0.0f, 1, 0, 0, 1, // 0 (origin)
 
 		 //topleft
@@ -238,10 +244,10 @@ int main(void)
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grid_ibo));
 	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * 2 * 8, grid, GL_STATIC_DRAW));
 
-	unsigned int hexagone_ibo; //index buffer objext for hexagone
-	GLCall(glGenBuffers(1, &hexagone_ibo));
-	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, hexagone_ibo));
-	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * 3 * 4, hexagone, GL_STATIC_DRAW));
+	//unsigned int hexagone_ibo; //index buffer objext for hexagone
+	//GLCall(glGenBuffers(1, &hexagone_ibo));
+	//GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, hexagone_ibo));
+	//GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * 3 * 4, hexagone, GL_STATIC_DRAW));
 
 	//Parse the shaders from files and create a program
 	std::string vertexShader;
@@ -252,21 +258,34 @@ int main(void)
 
 	std::cout << "VERTEX SHADER" << "\n";
 	GLCall(ParseFile(vertexShaderPath, vertexShader, true));
+	std::cout << "\n\n";
 
 	std::cout << "FRAGMENT SHADER" << "\n";
 	GLCall(ParseFile(fragmentShaderPath, fragmentShader, true));
 
 	unsigned int shader = CreateShader(vertexShader, fragmentShader);
 	GLCall(glUseProgram(shader));
-    
 
-
+	GLCall(int u_Color_location = glGetUniformLocation(shader, "u_Color"));
+	GLCall(glUniform4f(u_Color_location, 0.2f, 0.3f, 0.8f, 1.0f));
+  
+	float r = 0.0f;
+	float g = 0.0f;
+	float increment = 0.05f;
 	//Render loop until the user closes window
 	while (!glfwWindowShouldClose(window))
 	{
 		GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-		GLCall(glDrawElements(GL_TRIANGLES, 3 * 3 * 4, GL_UNSIGNED_INT, nullptr));
+		GLCall(glUniform4f(u_Color_location, r, g, 0.8f, 1.0f));
+		GLCall(glDrawElements(GL_TRIANGLES, 3 * 2 * 8, GL_UNSIGNED_INT, nullptr));
+
+		if (r > 1.0f || g > 1.0f) 
+				increment = -0.05f;
+		else if (r < 0.0f || g < 0.0f) 
+				increment = 0.05f;
+		r += increment;
+		g += increment;
 
 		GLCall(glfwSwapBuffers(window)); // swap front and back buffers
 		GLCall(glfwPollEvents()); //poll for and process events
