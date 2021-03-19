@@ -1,45 +1,9 @@
-﻿#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+﻿#include <GLFW/glfw3.h>
 #include <iostream>
 #include <fstream>
 #include <string>
+#include "renderer.h"
 
-#define NO_ASSERT 0
-#if NO_ASSERT == 0
-	#define ASSERT(f) if (!(f)) __debugbreak()
-#else 
-	#define ASSERT(f) f
-#endif
-
-#ifdef DEBUG
-	#define GLCall(f) GLClearErrors();\
-		f;\
-		ASSERT(GLLogErrors(#f, __FILE__, __LINE__))
-#else
-	#define GLCall(f) f
-#endif
-
-//Calls glGetError() until there are no more error flags
-//It should always be called before GLLogErrors()
-static void GLClearErrors()
-{
-	while (glGetError() != GL_NO_ERROR);
-}
-
-//Prints all errors found so far
-//It should always be called after GLClearErrors()
-static bool GLLogErrors(const char* function, const char* file, int line)
-{
-	bool noErrors = true;
-
-	while (unsigned int error = glGetError())
-	{
-		std::cout << "[OpenGL error] (" << error << "): " << function << " " << file << " : " << line << "\n";
-		noErrors = false;
-	}
-
-	return noErrors;
-}
 //Reads from an std::ifstream into a string
 static void ParseFile(std::string& path, std::string& out, bool printSourceToConsole = false)
 {
@@ -73,7 +37,7 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
 	{
 		int length;
 		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length); //get the length of the compilation error message
-		char* message = (char*)alloca(length * sizeof(char)); //allocate memory on the stack of length
+		char* message = (char*)alloca(length * sizeof(char)); //dynamically allocate memory on the stack
 		glGetShaderInfoLog(id, length, &length, message); //store the error message into "message"
 
 		std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader." << std::endl
@@ -116,6 +80,10 @@ int main(void)
 		std::cout << "glfwInit() failed\n";
 		return -1;
 	}
+
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	/* Create a windowed mode window and its OpenGL context */
 	window = glfwCreateWindow(1000, 1000, "Hello, Friend", NULL, NULL);
@@ -224,6 +192,10 @@ int main(void)
 		22, 1,  6
 	};
 
+	unsigned int vao;
+	GLCall(glGenVertexArrays(1, &vao));
+	GLCall(glBindVertexArray(vao));
+
 	unsigned int vbo; //vertex buffer object 
 	GLCall(glGenBuffers(1, &vbo)); //create a buffer
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, vbo)); //"select" a buffer
@@ -237,17 +209,18 @@ int main(void)
 	GLCall(glEnableVertexAttribArray(0));
 	GLCall(glEnableVertexAttribArray(1));
 
-
-	//index buffers
-	unsigned int grid_ibo; //index buffer object for grid
+	//index buffer
+	unsigned int grid_ibo; //index buffer object for drawing a grid
+	int grid_size = 3 * 2 * 8;
 	GLCall(glGenBuffers(1, &grid_ibo));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grid_ibo));
-	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * 2 * 8, grid, GL_STATIC_DRAW));
+	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * grid_size, grid, GL_STATIC_DRAW));
 
-	//unsigned int hexagone_ibo; //index buffer objext for hexagone
-	//GLCall(glGenBuffers(1, &hexagone_ibo));
-	//GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, hexagone_ibo));
-	//GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * 3 * 4, hexagone, GL_STATIC_DRAW));
+	unsigned int hexagone_ibo; //index buffer objext for drawing a hexagone
+	int hexagone_size = 3 * 3 * 4;
+	GLCall(glGenBuffers(1, &hexagone_ibo));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, hexagone_ibo));
+	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * hexagone_size, hexagone, GL_STATIC_DRAW));
 
 	//Parse the shaders from files and create a program
 	std::string vertexShader;
@@ -256,9 +229,10 @@ int main(void)
 	std::string vertexShaderPath   = "res/shaders/vertex.shader";
 	std::string fragmentShaderPath = "res/shaders/fragment.shader";
 
+
 	std::cout << "VERTEX SHADER" << "\n";
 	GLCall(ParseFile(vertexShaderPath, vertexShader, true));
-	std::cout << "\n\n";
+	std::cout << "\n";
 
 	std::cout << "FRAGMENT SHADER" << "\n";
 	GLCall(ParseFile(fragmentShaderPath, fragmentShader, true));
@@ -266,24 +240,40 @@ int main(void)
 	unsigned int shader = CreateShader(vertexShader, fragmentShader);
 	GLCall(glUseProgram(shader));
 
-	GLCall(int u_Color_location = glGetUniformLocation(shader, "u_Color"));
-	GLCall(glUniform4f(u_Color_location, 0.2f, 0.3f, 0.8f, 1.0f));
+	GLCall(int u_Color = glGetUniformLocation(shader, "u_Color"));
+	GLCall(glUniform4f(u_Color, 0.2f, 0.3f, 0.8f, 1.0f));
+
+	//"unbind" everything (for testing vertex array objects)
+	GLCall(glUseProgram(0));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
   
 	float r = 0.0f;
 	float g = 0.0f;
 	float increment = 0.05f;
+
+	int rand = 0;
 	//Render loop until the user closes window
 	while (!glfwWindowShouldClose(window))
 	{
 		GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-		GLCall(glUniform4f(u_Color_location, r, g, 0.8f, 1.0f));
-		GLCall(glDrawElements(GL_TRIANGLES, 3 * 2 * 8, GL_UNSIGNED_INT, nullptr));
+		GLCall(glUseProgram(shader));
+		GLCall(glUniform4f(u_Color, r, g, 0.8f, 1.0f));
 
+		GLCall(glBindVertexArray(vao));
+		//	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, hexagone_ibo));
+		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grid_ibo));
+
+		GLCall(glDrawElements(GL_TRIANGLES, grid_size, GL_UNSIGNED_INT, nullptr));
+
+		//changes the red and green value in the shader, rainbow effect 
 		if (r > 1.0f || g > 1.0f) 
 				increment = -0.05f;
 		else if (r < 0.0f || g < 0.0f) 
-				increment = 0.05f;
+				increment =  0.05f;
+
+
 		r += increment;
 		g += increment;
 
